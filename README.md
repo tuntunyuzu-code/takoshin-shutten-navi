@@ -1,1 +1,211 @@
 # takoshin-shutten-navi
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>たこ神 出店ナビ</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f6f3;color:#252a25;
+font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+header{background:#fff;padding:24px 18px 20px;border-bottom:1px solid #e5e7e2}
+.brand{color:#39834d;font-size:12px;font-weight:bold;letter-spacing:2px}
+h1{font-size:27px;margin:8px 0}
+header p{margin:6px 0;color:#667067;font-size:14px}
+main{max-width:760px;margin:auto;padding:18px 14px 40px}
+.stats{display:flex;gap:10px;margin-bottom:18px}
+.stat{flex:1;background:#fff;border-radius:14px;padding:14px 10px}
+.stat small{display:block;color:#707970;font-size:12px}
+.stat strong{display:block;font-size:22px;margin-top:6px}
+.panel{background:white;border-radius:16px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:bold;margin:12px 0 7px}
+input,select{width:100%;padding:12px;border:1px solid #d9ded7;
+border-radius:10px;background:white;font-size:16px;color:#252a25}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.filters .full{grid-column:1/-1}
+h2{font-size:18px;margin:4px 0 14px}
+.result{font-size:13px;color:#707970;margin:16px 2px}
+.event{background:white;border:1px solid #e4e7e1;
+border-radius:15px;padding:16px;margin-bottom:12px}
+.event h3{font-size:18px;margin:12px 0}
+.badge{display:inline-block;background:#e6f4e8;color:#28763b;
+border-radius:20px;padding:5px 9px;font-size:12px;font-weight:bold}
+.badge.check{background:#fff1d9;color:#865a18}
+.badge.closed{background:#eee;color:#666}
+.meta{font-size:14px;line-height:1.9;color:#515a51}
+.description{font-size:14px;line-height:1.7}
+.source{display:inline-block;margin-top:12px;background:#347c48;
+color:white;text-decoration:none;border-radius:9px;padding:11px 14px;
+font-weight:bold;font-size:14px}
+.empty{background:white;border-radius:14px;padding:25px 16px;
+text-align:center;color:#687168;line-height:1.8}
+.notice{font-size:12px;color:#737b72;line-height:1.7}
+footer{text-align:center;font-size:12px;color:#818980;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">TAKOGAMI · EVENT SEARCH</div>
+  <h1>たこ神 出店ナビ</h1>
+  <p>愛知県のイベント出店情報を探そう。</p>
+</header>
+
+<main>
+  <div class="stats">
+    <div class="stat"><small>表示中のイベント</small><strong id="total">0</strong></div>
+    <div class="stat"><small>募集中</small><strong id="open">0</strong></div>
+  </div>
+
+  <section class="panel">
+    <h2>イベントを探す</h2>
+    <div class="filters">
+      <div class="full">
+        <label for="keyword">キーワード</label>
+        <input id="keyword" placeholder="例：マルシェ、祭り、公園">
+      </div>
+      <div>
+        <label for="area">地域</label>
+        <select id="area">
+          <option value="">愛知県全域</option>
+          <option>名古屋市</option>
+          <option>尾張</option>
+          <option>三河</option>
+          <option>知多</option>
+          <option>地域不明</option>
+        </select>
+      </div>
+      <div>
+        <label for="status">募集状況</label>
+        <select id="status">
+          <option value="">すべて</option>
+          <option>募集中</option>
+          <option>要確認</option>
+          <option>締切済み</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <div class="result" id="message">イベント情報を読み込み中...</div>
+  <section id="events"></section>
+
+  <p class="notice">
+    ※募集状況・出店料・締切は変更される場合があります。
+    応募前に必ず主催者の公式情報をご確認ください。
+  </p>
+</main>
+
+<footer>たこ神 出店ナビ</footer>
+
+<script type="module">
+import { createClient } from
+'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// SupabaseのProject URLとPublishable keyを設定してください
+const SUPABASE_URL = '';
+const SUPABASE_KEY = '';
+
+const list = document.getElementById('events');
+const message = document.getElementById('message');
+let allEvents = [];
+
+function safe(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;',
+    '"':'&quot;', "'":'&#39;'
+  })[c]);
+}
+
+function validUrl(value) {
+  try {
+    const u = new URL(value);
+    return ['https:', 'http:'].includes(u.protocol) ? u.href : '';
+  } catch {
+    return '';
+  }
+}
+
+function render() {
+  const keyword = document.getElementById('keyword').value.trim().toLowerCase();
+  const area = document.getElementById('area').value;
+  const status = document.getElementById('status').value;
+
+  const filtered = allEvents.filter(e => {
+    const text = [e.title, e.area, e.summary, e.event_type]
+      .join(' ').toLowerCase();
+    const areaMatch = !area ||
+      String(e.area || '').includes(area) ||
+      (area === '地域不明' && !e.area);
+    return text.includes(keyword) && areaMatch &&
+      (!status || e.status === status);
+  });
+
+  document.getElementById('total').textContent = filtered.length;
+  document.getElementById('open').textContent =
+    filtered.filter(e => e.status === '募集中').length;
+
+  message.textContent = `${filtered.length}件のイベント`;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">該当するイベントがありません。<br>検索条件を変えてみてください。</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(e => {
+    const badgeClass = e.status === '募集中' ? '' :
+      e.status === '締切済み' ? 'closed' : 'check';
+    const url = validUrl(e.source_url);
+    return `
+      <article class="event">
+        <span class="badge ${badgeClass}">${safe(e.status || '要確認')}</span>
+        <h3>${safe(e.title)}</h3>
+        <div class="meta">
+          📍 ${safe(e.area || '愛知県内・地域不明')}<br>
+          📅 開催日：${safe(e.event_date || '要確認')}<br>
+          ⏰ 応募締切：${safe(e.deadline || '要確認')}<br>
+          💰 出店料：${safe(e.fee || '要確認')}<br>
+          🚚 キッチンカー：${safe(e.food_truck_allowed || '未確認')}
+        </div>
+        ${e.summary ? `<p class="description">${safe(e.summary)}</p>` : ''}
+        ${url ? `<a class="source" href="${safe(url)}" target="_blank" rel="noopener noreferrer">主催者の情報を見る ↗</a>` : ''}
+      </article>`;
+  }).join('');
+}
+
+async function start() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    allEvents = [];
+    message.textContent = 'Supabase接続設定が必要です';
+    list.innerHTML = '<div class="empty">画面の準備ができました！<br>Supabaseの接続情報を設定すると、登録されたイベントを表示できます。</div>';
+    return;
+  }
+
+  try {
+    const { createClient } = await import(
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+    );
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { data, error } = await supabase
+      .from('events')
+      .select('id,title,area,event_type,event_date,deadline,fee,status,food_truck_allowed,source_name,source_url,summary')
+      .order('event_date', { ascending: true, nullsFirst: false });
+
+    if (error) throw error;
+    allEvents = data || [];
+    render();
+  } catch (error) {
+    message.textContent = '読み込みに失敗しました';
+    list.innerHTML = '<div class="empty">接続設定やデータベースの権限を確認してください。</div>';
+    console.error(error);
+  }
+}
+
+document.getElementById('keyword').addEventListener('input', render);
+document.getElementById('area').addEventListener('change', render);
+document.getElementById('status').addEventListener('change', render);
+
+start();
+</script>
+</body>
+</html>
