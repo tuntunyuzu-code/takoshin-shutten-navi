@@ -1,0 +1,1 @@
+# takoshin-shutten-navi
