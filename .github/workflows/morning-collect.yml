@@ -1,9 +1,7 @@
-
 name: Morning Event Collection
 
 on:
   schedule:
-    # 毎朝8時（日本時間）に実行
     - cron: "0 23 * * *"
   workflow_dispatch:
 
@@ -17,8 +15,13 @@ jobs:
       - name: コードを取得
         uses: actions/checkout@v4
 
-      - name: 実行時刻を確認
-        run: |
-          echo "たこ神 出店ナビの自動収集を開始します"
-          date -u
-          echo "日本時間の朝8時に実行する設定です"
+      - name: Pythonを準備
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 出店情報を収集・登録
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python scripts/collect_events.py
