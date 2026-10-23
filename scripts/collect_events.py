@@ -74,7 +74,7 @@ def collect(source):
         if key != "required_text"
     }
 
-    event["deadline"] = ""
+    event["deadline"] = None
 
     event["dedupe_key"] = hashlib.sha256(
         source["source_url"].encode("utf-8")
