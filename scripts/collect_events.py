@@ -18,7 +18,6 @@ def main():
         url,
         headers={
             "apikey": SUPABASE_KEY,
-            "Authorization": f"Bearer {SUPABASE_KEY}",
         },
         method="GET",
     )
