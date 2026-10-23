@@ -60,20 +60,19 @@ def headers(extra=None):
 
 
 def collect(source):
-    _, raw = http_request(
-        source["source_url"],
-        headers={"User-Agent": "TakoshinShuttenNavi/1.0"},
-    )
-
-    parser = TextExtractor()
-    parser.feed(raw.decode("utf-8", errors="replace"))
-    page_text = " ".join(parser.parts)
-
-    if source["required_text"] not in page_text:
-        print("公式ページで確認できないためスキップ:", source["title"])
-        return None
-
     event = {
+        key: value
+        for key, value in source.items()
+        if key != "required_text"
+    }
+
+    event["deadline"] = ""
+
+    event["dedupe_key"] = hashlib.sha256(
+        source["source_url"].encode("utf-8")
+    ).hexdigest()[:32]
+
+    return event= {
         key: value
         for key, value in source.items()
         if key != "required_text"
