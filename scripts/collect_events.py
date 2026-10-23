@@ -91,12 +91,13 @@ def make_key(url):
     return hashlib.sha256(url.encode("utf-8")).hexdigest()[:32]
 
 def discover(url):
-    _, raw = request(
-        url,
-        extra={"apikey": ""}
-    )
-    parser = LinkParser()
-    parser.feed(raw.decode("utf-8", errors="replace"))
+    try:
+        _, raw = request(url)
+        parser = LinkParser()
+        parser.feed(raw.decode("utf-8", errors="replace"))
+    except Exception as e:
+        print(f"取得失敗: {url} / {e}")
+        return []
 
     results = []
     seen = set()
@@ -106,17 +107,16 @@ def discover(url):
         title = re.sub(r"\s+", " ", label).strip()
         if not title or len(title) < 4:
             continue
+
         if not any(word in title for word in KEYWORDS):
             continue
 
         link = urljoin(url, href)
         parsed = urlparse(link)
 
-        if parsed.scheme != "https":
+        if parsed.scheme != "https" or parsed.netloc != host:
             continue
-        if parsed.netloc != host:
-            continue
-        if link in seen or link.rstrip("/") == url.rstrip("/"):
+        if link in seen:
             continue
 
         seen.add(link)
@@ -129,9 +129,9 @@ def discover(url):
             "fee": "要確認",
             "status": "要確認",
             "food_truck_allowed": "要確認",
-            "source_name": "行政イベント出店募集情報（民間サイト）",
+            "source_name": "愛知県内の出店募集情報（要確認）",
             "source_url": link,
-            "summary": "自動検出した募集候補です。開催日・締切・出店条件・受付状況を主催者の公式情報で確認してください。",
+            "summary": "自動検出した募集候補です。応募期限・出店料・食品出店条件をリンク先の主催者公式情報で確認してください。"
         })
 
     print(f"候補検出: {len(results)}件 / {url}")
