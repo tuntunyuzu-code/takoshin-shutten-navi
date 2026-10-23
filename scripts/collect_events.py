@@ -53,7 +53,6 @@ def http_request(url, method="GET", headers=None, body=None):
 def headers(extra=None):
     result = {
         "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
     }
     if extra:
         result.update(extra)
