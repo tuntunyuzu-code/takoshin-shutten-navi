@@ -72,14 +72,6 @@ def collect(source):
         source["source_url"].encode("utf-8")
     ).hexdigest()[:32]
 
-    return event= {
-        key: value
-        for key, value in source.items()
-        if key != "required_text"
-    }
-    event["dedupe_key"] = hashlib.sha256(
-        source["source_url"].encode("utf-8")
-    ).hexdigest()[:32]
 
     return event
 
