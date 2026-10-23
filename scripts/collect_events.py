@@ -30,9 +30,11 @@ SEED_EVENTS = [
 ]
 
 # 募集情報を探す入口
-LISTING_URLS = [
-    "https://gyosei-shutten.jp/area/aichi/",
-]
+LISTING_URLS = [    "https://gyosei-shutten.jp/area/aichi/",
+    "https://www.pref.aichi.jp/soshiki/gorin/2026heisai.html",
+    "https://www.city.seto.aichi.jp/docs/2023/08/04/008533656/008533656.html",
+    "https://www.city.chiryu.aichi.jp/boshu/other/1661318839621.html",
+               ]
 
 KEYWORDS = (
     "キッチンカー",
