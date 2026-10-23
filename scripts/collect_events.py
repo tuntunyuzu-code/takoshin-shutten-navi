@@ -73,7 +73,7 @@ class LinkParser(HTMLParser):
 
 def request(url, method="GET", body=None, extra=None):
     headers = {
-        "User-Agent": "Mozilla/5.0 TakoshinShuttenNavi",
+        "User-Agent": "TakoshinShuttenNavi/1.0 (GitHub Actions)",
         "apikey": SUPABASE_KEY,
     }
     if extra:
