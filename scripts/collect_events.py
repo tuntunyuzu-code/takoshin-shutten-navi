@@ -46,8 +46,16 @@ def http_request(url, method="GET", headers=None, body=None):
         headers=headers or {},
         method=method,
     )
-    with urllib.request.urlopen(req, timeout=30) as response:
-        return response.status, response.read()
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            return response.status, response.read()
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode(
+            "utf-8", errors="replace"
+        )
+        raise RuntimeError(
+            f"HTTP {error.code}: {detail}"
+        ) from error
 
 
 def headers(extra=None):
