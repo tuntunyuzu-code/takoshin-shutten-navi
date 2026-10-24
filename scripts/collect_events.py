@@ -35,6 +35,7 @@ LISTING_URLS = [    "https://gyosei-shutten.jp/area/aichi/",
     "https://www.city.seto.aichi.jp/docs/2023/08/04/008533656/008533656.html",
     "https://www.city.chiryu.aichi.jp/boshu/other/1661318839621.html",
                     "https://event-shutten-navi.com/",
+                    "https://tasukarunet.com/vendor-recruitment",
                ]
 
 KEYWORDS = (
