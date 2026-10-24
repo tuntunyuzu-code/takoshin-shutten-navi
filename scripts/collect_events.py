@@ -114,6 +114,11 @@ def discover(url):
 
         if not any(word in title for word in KEYWORDS):
             continue
+        if any(word in title for word in (
+            "比較", "ランキング", "おすすめ", "選び方",
+            "使い方", "とは", "まとめ", "レビュー"
+        )):
+            continue
 
         link = urljoin(url, href)
         parsed = urlparse(link)
