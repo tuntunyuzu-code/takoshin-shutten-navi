@@ -93,7 +93,9 @@ def request(url, method="GET", body=None, extra=None):
 
 def make_key(url):
     return hashlib.sha256(url.encode("utf-8")).hexdigest()[:32]
-
+def normalize_title(title):
+    title = title.lower()
+    return re.sub(r"[\s　・、。!！?？\-‐ー_/（）()「」【】]", "", title)
 def discover(url):
     try:
         _, raw = request(url)
